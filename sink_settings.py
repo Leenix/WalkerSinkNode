@@ -11,6 +11,7 @@ logger_name = "Walker"
 log_filename = "Walker.log"
 log_format = "%(asctime)s - %(levelname)s - %(message)s"
 
+
 def start_logger():
     logger = logging.getLogger(logger_name)
     logger.setLevel(logger_level)
@@ -22,7 +23,7 @@ def start_logger():
 
     # File Logging
     if log_filename:
-        file_handler = TimedRotatingFileHandler()
+        file_handler = TimedRotatingFileHandler(filename=log_filename, when='W0', interval=4)
         file_handler.setFormatter(logging.Formatter(log_format))
         file_handler.setLevel(logging.INFO)
         logger.addHandler(file_handler)

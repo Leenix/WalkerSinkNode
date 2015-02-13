@@ -1,11 +1,12 @@
-from Reader.WalkerReader import *
-from Processor.ThingspeakProcessor import *
-from Uploader.ThingspeakUploader import *
+from SinkNode.Reader.WalkerReader import *
+from SinkNode.Processor.ThingspeakProcessor import *
+from SinkNode.Uploader.ThingspeakUploader import *
 from SinkNode import *
 
 from Queue import Queue
 
 from sink_settings import *
+
 
 class WalkerSink(object):
     def __init__(self, port=SERIAL_PORT):
@@ -13,8 +14,20 @@ class WalkerSink(object):
 
 
 if __name__ == '__main__':
-    reader = WalkerReader(port=SERIAL_PORT, baud=BAUD_RATE, logger_name=logger_name)
-    processor = ThingspeakProcessor(channel_map=WALKER_CHANNEL_MAP, key_map=WALKER_KEY_MAP, logger_name=logger_name)
-    uploader = ThingspeakUploader(logger_name=logger_name)
+    start_logger()
 
-    sink = SinkNode
+    processor_queue = Queue()
+    upload_queue = Queue()
+
+    reader = WalkerReader(port=SERIAL_PORT, baud_rate=BAUD_RATE, logger_name=logger_name)
+    reader.set_queue(processor_queue)
+
+    processor = ThingspeakProcessor(channel_map=WALKER_CHANNEL_MAP, key_map=WALKER_KEY_MAP)
+    processor.set_inbox(processor_queue)
+    processor.set_outbox(upload_queue)
+
+    uploader = ThingspeakUploader()
+    uploader.set_queue(upload_queue)
+
+    sink = SinkNode(reader, processor, uploader)
+    sink.run()
